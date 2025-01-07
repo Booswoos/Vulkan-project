@@ -30,7 +30,7 @@
 
 #include <hpp_api_vulkan_sample.h>
 
-#define OBJECT_INSTANCES 125
+#define OBJECT_INSTANCES 15
 
 class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 {
@@ -62,6 +62,37 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 	{
 		float pos[3];
 		float color[3];
+
+        Vertex() {}
+
+        Vertex(const glm::vec3 &position, const glm::vec3 &color)
+        {
+            set_position(position);
+            set_color(color);
+        }
+
+        void set_position(const glm::vec3 &position)
+        {
+            pos[0] = position.x;
+            pos[1] = position.y;
+            pos[2] = position.z;
+        }
+
+        void set_color(const glm::vec3 &color)
+        {
+            this->color[0] = color.r;
+            this->color[1] = color.g;
+            this->color[2] = color.b;
+        }
+
+        // assignment for color, not really generic
+        // and wont work for position!
+        Vertex &operator=(const glm::vec3 &new_color)
+        {
+            set_color(new_color);
+            return *this;
+        }
+
 	};
 
   private:
@@ -87,6 +118,7 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 	void                    update_descriptor_set();
 	void                    update_dynamic_uniform_buffer(float delta_time, bool force = false);
 	void                    update_uniform_buffers();
+    void                    update_colors(Vertex& vertex);
 
   private:
 	float                                 animation_timer = 0.0f;

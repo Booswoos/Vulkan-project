@@ -246,7 +246,11 @@ void HPPDynamicUniformBuffers::generate_cube()
 	    {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 0.0f}},
 	};
 
-	// clang-format off
+    for (auto& v : vertices) {
+        update_colors(v);
+    }
+
+    // clang-format off
 	std::vector<uint32_t> indices = { 0, 1, 2,		2, 3, 0,		1, 5, 6,		6, 2, 1,		7, 6, 5,		5, 4, 7,
 	                                  4, 0, 3,		3, 7, 4,		4, 5, 1,		1, 0, 4,		3, 2, 6,		6, 7, 3 };
 	// clang-format on
@@ -335,55 +339,76 @@ void HPPDynamicUniformBuffers::update_descriptor_set()
 	get_device().get_handle().updateDescriptorSets(write_descriptor_sets, {});
 }
 
+void HPPDynamicUniformBuffers::update_colors(Vertex& vertex)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    glm::vec3 new_color = glm::vec3(dis(gen), dis(gen), dis(gen));
+    vertex.set_color(new_color);
+}
+
 void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, bool force)
 {
-	// Update at max. 60 fps
-	animation_timer += delta_time;
-	if ((animation_timer + 0.0025 < (1.0f / 60.0f)) && (!force))
-	{
-		return;
-	}
+    // Update at max. 60 fps
+    animation_timer += delta_time;
+    if ((animation_timer + 0.0025 < (1.0f / 60.0f)) && (!force))
+    {
+        return;
+    }
 
-	// Dynamic ubo with per-object model matrices indexed by offsets in the command buffer
-	auto      dim  = static_cast<uint32_t>(pow(OBJECT_INSTANCES, (1.0f / 3.0f)));
-	auto      fdim = static_cast<float>(dim);
-	glm::vec3 offset(5.0f);
+    // Dynamic UBO with per-object model matrices indexed by offsets in the command buffer
+    auto      dim  = static_cast<uint32_t>(pow(OBJECT_INSTANCES, (1.0f / 3.0f)));
+    auto      fdim = static_cast<float>(dim);
 
-	for (uint32_t x = 0; x < dim; x++)
-	{
-		auto fx = static_cast<float>(x);
-		for (uint32_t y = 0; y < dim; y++)
-		{
-			auto fy = static_cast<float>(y);
-			for (uint32_t z = 0; z < dim; z++)
-			{
-				auto fz    = static_cast<float>(z);
-				auto index = x * dim * dim + y * dim + z;
 
-				// Aligned offset
-				auto model_mat = (glm::mat4 *) (((uint64_t) ubo_data_dynamic.model + (index * dynamic_alignment)));
+    // Temporary center, around this instances will rotate
+    glm::vec3 offset(5.0f);
+    glm::vec3 center(0.0f);
 
-				// Update rotations
-				rotations[index] += animation_timer * rotation_speeds[index];
+    for (uint32_t x = 0; x < dim; x++)
+    {
+        auto fx = static_cast<float>(x);
+        for (uint32_t y = 0; y < dim; y++)
+        {
+            auto fy = static_cast<float>(y);
+            for (uint32_t z = 0; z < dim; z++)
+            {
+                auto fz    = static_cast<float>(z);
+                auto index = x * dim * dim + y * dim + z;
 
-				// Update matrices
-				glm::vec3 pos(-((fdim * offset.x) / 2.0f) + offset.x / 2.0f + fx * offset.x,
-				              -((fdim * offset.y) / 2.0f) + offset.y / 2.0f + fy * offset.y,
-				              -((fdim * offset.z) / 2.0f) + offset.z / 2.0f + fz * offset.z);
-				*model_mat = glm::translate(glm::mat4(1.0f), pos);
-				*model_mat = glm::rotate(*model_mat, rotations[index].x, glm::vec3(1.0f, 1.0f, 0.0f));
-				*model_mat = glm::rotate(*model_mat, rotations[index].y, glm::vec3(0.0f, 1.0f, 0.0f));
-				*model_mat = glm::rotate(*model_mat, rotations[index].z, glm::vec3(0.0f, 0.0f, 1.0f));
-			}
-		}
-	}
+                // Aligned offset
+                auto model_mat = (glm::mat4 *) (((uint64_t) ubo_data_dynamic.model + (index * dynamic_alignment)));
 
-	animation_timer = 0.0f;
+                // Update rotations
+                rotations[index] += animation_timer * rotation_speeds[index];
 
-	uniform_buffers.dynamic->update(ubo_data_dynamic.model, static_cast<size_t>(uniform_buffers.dynamic->get_size()));
+                // Calculate position relative to the center
+                glm::vec3 pos(-((fdim * offset.x) / 2.0f) + offset.x / 2.0f + fx * offset.x,
+                              -((fdim * offset.y) / 2.0f) + offset.y / 2.0f + fy * offset.y,
+                              -((fdim * offset.z) / 2.0f) + offset.z / 2.0f + fz * offset.z);
 
-	// Flush to make changes visible to the device
-	uniform_buffers.dynamic->flush();
+                // Transformations to make the cube rotate around the center
+                glm::mat4 translation_to_center = glm::translate(glm::mat4(1.0f), center - pos);
+                glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), rotations[index].x, glm::vec3(1.0f, 0.0f, 0.0f)) *
+                                     glm::rotate(glm::mat4(1.0f), rotations[index].y, glm::vec3(0.0f, 1.0f, 0.0f)) *
+                                     glm::rotate(glm::mat4(1.0f), rotations[index].z, glm::vec3(0.0f, 0.0f, 1.0f));
+                glm::mat4 translation_back = glm::translate(glm::mat4(1.0f), pos - center);
+
+                // Combine transformations
+                *model_mat = translation_back * rotation * translation_to_center;
+
+            }
+        }
+    }
+
+    animation_timer = 0.0f;
+
+    uniform_buffers.dynamic->update(ubo_data_dynamic.model, static_cast<size_t>(uniform_buffers.dynamic->get_size()));
+
+    // Flush to make changes visible to the device
+    uniform_buffers.dynamic->flush();
 }
 
 void HPPDynamicUniformBuffers::update_uniform_buffers()
