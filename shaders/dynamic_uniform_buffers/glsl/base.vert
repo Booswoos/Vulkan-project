@@ -18,23 +18,27 @@
 
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec3 inColor;
+layout (location = 2) in vec3 normal;
 
 layout (binding = 0) uniform UboView 
 {
 	mat4 projection;
 	mat4 view;
+    vec4 ambientLightColor;
+    vec3 lightPosition;
+    vec4 lightColor;
 } uboView;
 
 layout (binding = 1) uniform UboInstance 
 {
-	mat4 model; 
+	mat4 model;
 } uboInstance;
 
 layout (location = 0) out vec3 outColor;
 
 out gl_PerVertex 
 {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
 void main() 
@@ -44,4 +48,21 @@ void main()
 	mat4 modelView = uboView.view * uboInstance.model;
 	vec3 worldPos = vec3(modelView * vec4(inPos, 1.0));
 	gl_Position = uboView.projection * modelView * vec4(inPos.xyz, 1.0);
+
+	//
+    mat3 normalMatrix = transpose(inverse(mat3(uboInstance.model)));
+    vec3 normalWorldSpace = normalize(normalMatrix * normal);
+
+	vec3 directionToLight = uboView.lightPosition - worldPos.xyz;
+    float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
+	vec3 lightColor = uboView.lightColor.xyz * uboView.lightColor.w;
+	vec3 ambientLight = uboView.ambientLightColor.xyz * uboView.ambientLightColor.w;
+	float diffuseFactor = max(dot(normalWorldSpace, normalize(directionToLight)), 0.0);
+	vec3 diffuseLight = lightColor * diffuseFactor;
+
+	//outColor = vec3(0.7,0.0,0.0) * (lightColor);
+	outColor = (diffuseLight + ambientLight) * inColor;
+	//outColor = vec3(attenuation);
+
+	//outColor = normalWorldSpace;
 }

@@ -30,7 +30,9 @@
 #include <benchmark_mode/benchmark_mode.h>
 #include <iostream>
 #include <random>
-
+struct GlobalUbo {
+    glm::mat4 project;
+};
 HPPDynamicUniformBuffers::HPPDynamicUniformBuffers()
 {
 	title = "HPP Dynamic uniform buffers";
@@ -190,9 +192,10 @@ vk::Pipeline HPPDynamicUniformBuffers::create_pipeline()
 
 	// Vertex bindings and attributes
 	vk::VertexInputBindingDescription                  vertex_input_binding(0, sizeof(Vertex), vk::VertexInputRate::eVertex);
-	std::array<vk::VertexInputAttributeDescription, 2> vertex_input_attributes = {
+	std::array<vk::VertexInputAttributeDescription, 3> vertex_input_attributes = {
 	    {{0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},            // Location 0 : Position
-	     {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)}}};        // Location 1 : Color
+	     {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)},          // Location 1 : Color
+         {2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)}}};       // Location 2 : Normal
 	vk::PipelineVertexInputStateCreateInfo vertex_input_state({}, vertex_input_binding, vertex_input_attributes);
 
 	vk::PipelineColorBlendAttachmentState blend_attachment_state;
@@ -236,14 +239,14 @@ void HPPDynamicUniformBuffers::generate_cube()
 {
 	// Setup vertices indices for a colored cube
 	std::vector<Vertex> vertices = {
-	    {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-	    {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-	    {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}},
-	    {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-	    {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-	    {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 0.0f}},
+	    {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	    {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	    {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+	    {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	    {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+	    {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+	    {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+	    {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} , {0.0f, 0.0f, -1.0f}},
 	};
 
     for (auto& v : vertices) {
