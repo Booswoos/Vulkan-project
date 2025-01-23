@@ -50,9 +50,9 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 	{
 		glm::mat4 projection;
 		glm::mat4 view;
-        glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .02f};
+        glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .01f};
         glm::vec3 lightPosition{-16.0f, -0.0f, -16.0f};
-        alignas(16) glm::vec4 lightColor{1.0f, 1.0f, 1.0f, 1.0f};
+        alignas(16) glm::vec4 lightColor{1.0f, 0.0f, 1.0f, 1.0f};
 	};
 
 	struct UniformBuffers
@@ -133,6 +133,7 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 
   private:
 	float                                 animation_timer = 0.0f;
+    float                                 diff = 0.01f;
 	vk::DescriptorSet                     descriptor_set;
 	vk::DescriptorSetLayout               descriptor_set_layout;
 	size_t                                dynamic_alignment = 0;

@@ -55,12 +55,13 @@ void main()
 
 	vec3 directionToLight = uboView.lightPosition - worldPos.xyz;
     float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
-	vec3 lightColor = uboView.lightColor.xyz * uboView.lightColor.w;
+	vec3 lightColor = uboView.lightColor.xyz * 0.4;
 	vec3 ambientLight = uboView.ambientLightColor.xyz * uboView.ambientLightColor.w;
 	float diffuseFactor = max(dot(normalWorldSpace, normalize(directionToLight)), 0.0);
 	vec3 diffuseLight = lightColor * diffuseFactor;
 
 	//outColor = vec3(0.7,0.0,0.0) * (lightColor);
+	//outColor = (diffuseLight + ambientLight) * vec3(0.4,0.4,0.4);
 	outColor = (diffuseLight + ambientLight) * inColor;
 	//outColor = vec3(attenuation);
 

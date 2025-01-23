@@ -238,24 +238,63 @@ void HPPDynamicUniformBuffers::draw()
 void HPPDynamicUniformBuffers::generate_cube()
 {
 	// Setup vertices indices for a colored cube
-	std::vector<Vertex> vertices = {
-	    {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	    {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
-	    {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} , {0.0f, 0.0f, -1.0f}},
-	};
+    std::vector<Vertex> vertices = {
+            // Front face
+            {{-1.0f, -1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            {{ 1.0f, -1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            {{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            {{-1.0f,  1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+
+            // Back face
+            {{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{ 1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{ 1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+
+            // Top face
+            {{-1.0f,  1.0f,  1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {{ 1.0f,  1.0f,  1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {{ 1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+
+            // Bottom face
+            {{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+            {{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+            {{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+            {{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+
+            // Right face
+            {{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+            {{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+            {{ 1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+            {{ 1.0f,  1.0f,  1.0f}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+
+            // Left face
+            {{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{-1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}}
+    };
 
     for (auto& v : vertices) {
         update_colors(v);
     }
 
     // clang-format off
-	std::vector<uint32_t> indices = { 0, 1, 2,		2, 3, 0,		1, 5, 6,		6, 2, 1,		7, 6, 5,		5, 4, 7,
-	                                  4, 0, 3,		3, 7, 4,		4, 5, 1,		1, 0, 4,		3, 2, 6,		6, 7, 3 };
+    std::vector<uint32_t> indices = {
+            // Front face
+            0, 1, 2,    2, 3, 0,
+            // Back face
+            5, 4, 7,    7, 6, 5,
+            // Top face
+            8, 9, 10,   10, 11, 8,
+            // Bottom face
+            12, 13, 14,     14, 15, 12,
+            // Right face
+            16, 17, 18,     18, 19, 16,
+            // Left face
+            20, 21, 22,     22, 23, 20
+    };
 	// clang-format on
 
 	index_count = static_cast<uint32_t>(indices.size());
@@ -351,7 +390,6 @@ void HPPDynamicUniformBuffers::update_colors(Vertex& vertex)
     glm::vec3 new_color = glm::vec3(dis(gen), dis(gen), dis(gen));
     vertex.set_color(new_color);
 }
-
 void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, bool force)
 {
     // Update at max. 60 fps
@@ -360,7 +398,14 @@ void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, b
     {
         return;
     }
-
+    if (ubo_vs.lightColor.b >= 1.0f) {
+        diff *= -1.0f;
+    }
+    if (ubo_vs.lightColor.b <= 0.0f) {
+        diff *= -1.0f;
+    }
+    ubo_vs.lightColor.b = ubo_vs.lightColor.b + diff;
+    update_uniform_buffers();
     // Dynamic UBO with per-object model matrices indexed by offsets in the command buffer
     auto      dim  = static_cast<uint32_t>(pow(OBJECT_INSTANCES, (1.0f / 3.0f)));
     auto      fdim = static_cast<float>(dim);
