@@ -35,7 +35,7 @@ struct GlobalUbo {
 };
 HPPDynamicUniformBuffers::HPPDynamicUniformBuffers()
 {
-	title = "HPP Dynamic uniform buffers";
+	title = "Mobilne aplikacje multimedialne";
 }
 
 HPPDynamicUniformBuffers ::~HPPDynamicUniformBuffers()

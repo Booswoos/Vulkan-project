@@ -76,7 +76,8 @@ public class SampleLauncherActivity extends AppCompatActivity {
         if (checkPermissions()) {
             // Permissions previously granted skip requesting them
             parseArguments();
-            showSamples();
+            launchSample("hpp_dynamic_uniform_buffers");
+            //showSamples();
         } else {
             // Chain request permissions
             requestNextPermission();
