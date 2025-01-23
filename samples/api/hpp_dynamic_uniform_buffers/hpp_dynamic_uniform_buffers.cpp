@@ -274,7 +274,7 @@ void HPPDynamicUniformBuffers::generate_cube()
 void HPPDynamicUniformBuffers::prepare_camera()
 {
 	camera.type = vkb::CameraType::LookAt;
-	camera.set_position(glm::vec3(0.0f, 0.0f, -30.0f));
+	camera.set_position(glm::vec3(0.0f, 0.0f, -42.00f));
 	camera.set_rotation(glm::vec3(0.0f));
 
 	// Note: Using reversed depth-buffer for increased precision, so Znear and Zfar are flipped
@@ -362,10 +362,14 @@ void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, b
     auto      dim  = static_cast<uint32_t>(pow(OBJECT_INSTANCES, (1.0f / 3.0f)));
     auto      fdim = static_cast<float>(dim);
 
+    // Moving center creates dynamic anchoring for rotations
+    float moving_center_radius = 10.0f;
+    glm::vec3 center(
+            sin(animation_timer) * moving_center_radius,
+            sin(animation_timer * 0.5f) * moving_center_radius, // Slower Y oscillation
+            cos(animation_timer) * moving_center_radius);
 
-    // Temporary center, around this instances will rotate
-    glm::vec3 offset(5.0f);
-    glm::vec3 center(0.0f);
+    glm::vec3 offset(5.0f); // Grid spacing
 
     for (uint32_t x = 0; x < dim; x++)
     {
@@ -378,27 +382,30 @@ void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, b
                 auto fz    = static_cast<float>(z);
                 auto index = x * dim * dim + y * dim + z;
 
-                // Aligned offset
                 auto model_mat = (glm::mat4 *) (((uint64_t) ubo_data_dynamic.model + (index * dynamic_alignment)));
 
-                // Update rotations
-                rotations[index] += animation_timer * rotation_speeds[index];
+                rotations[index] += animation_timer * rotation_speeds[index] * (1.0f + 0.5f * sin(fx + fy + fz));
 
-                // Calculate position relative to the center
-                glm::vec3 pos(-((fdim * offset.x) / 2.0f) + offset.x / 2.0f + fx * offset.x,
-                              -((fdim * offset.y) / 2.0f) + offset.y / 2.0f + fy * offset.y,
-                              -((fdim * offset.z) / 2.0f) + offset.z / 2.0f + fz * offset.z);
+                float noise_offset = 0.3f * sin(fx * 0.5f + animation_timer) + 0.3f * cos(fz * 0.5f - animation_timer);
+                glm::vec3 pos(-((fdim * offset.x) / 2.0f) + offset.x / 2.0f + fx * offset.x + noise_offset,
+                              -((fdim * offset.y) / 2.0f) + offset.y / 2.0f + fy * offset.y + noise_offset,
+                              -((fdim * offset.z) / 2.0f) + offset.z / 2.0f + fz * offset.z + noise_offset);
 
-                // Transformations to make the cube rotate around the center
+                float scale_factor = 1.0f + 0.3f * sin(animation_timer + fx + fy + fz);
+                glm::mat4 scaling = glm::scale(glm::mat4(1.0f), glm::vec3(scale_factor));
+
+                glm::vec3 cluster_center = glm::vec3((x / 3) * offset.x, (y / 3) * offset.y, (z / 3) * offset.z);
+                glm::mat4 cluster_rotation = glm::rotate(glm::mat4(1.0f), animation_timer * 0.2f, glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::mat4 translation_to_cluster_center = glm::translate(glm::mat4(1.0f), cluster_center - pos);
+                glm::mat4 translation_back_from_cluster_center = glm::translate(glm::mat4(1.0f), pos - cluster_center);
+
                 glm::mat4 translation_to_center = glm::translate(glm::mat4(1.0f), center - pos);
                 glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), rotations[index].x, glm::vec3(1.0f, 0.0f, 0.0f)) *
                                      glm::rotate(glm::mat4(1.0f), rotations[index].y, glm::vec3(0.0f, 1.0f, 0.0f)) *
                                      glm::rotate(glm::mat4(1.0f), rotations[index].z, glm::vec3(0.0f, 0.0f, 1.0f));
                 glm::mat4 translation_back = glm::translate(glm::mat4(1.0f), pos - center);
 
-                // Combine transformations
-                *model_mat = translation_back * rotation * translation_to_center;
-
+                *model_mat = translation_back_from_cluster_center * cluster_rotation * translation_to_cluster_center * translation_back * scaling * rotation * translation_to_center;
             }
         }
     }
@@ -407,9 +414,9 @@ void HPPDynamicUniformBuffers::update_dynamic_uniform_buffer(float delta_time, b
 
     uniform_buffers.dynamic->update(ubo_data_dynamic.model, static_cast<size_t>(uniform_buffers.dynamic->get_size()));
 
-    // Flush to make changes visible to the device
     uniform_buffers.dynamic->flush();
 }
+
 
 void HPPDynamicUniformBuffers::update_uniform_buffers()
 {
