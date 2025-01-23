@@ -50,6 +50,9 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 	{
 		glm::mat4 projection;
 		glm::mat4 view;
+        glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .01f};
+        glm::vec3 lightPosition{-16.0f, -0.0f, -16.0f};
+        alignas(16) glm::vec4 lightColor{1.0f, 0.0f, 1.0f, 1.0f};
 	};
 
 	struct UniformBuffers
@@ -62,13 +65,15 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 	{
 		float pos[3];
 		float color[3];
-
+        float normal[3];
         Vertex() {}
 
-        Vertex(const glm::vec3 &position, const glm::vec3 &color)
+        Vertex(const glm::vec3 &position, const glm::vec3 &color, const glm::vec3 &normal)
         {
             set_position(position);
             set_color(color);
+            set_normal(normal);
+
         }
 
         void set_position(const glm::vec3 &position)
@@ -83,6 +88,12 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
             this->color[0] = color.r;
             this->color[1] = color.g;
             this->color[2] = color.b;
+        }
+        void set_normal(const glm::vec3 &normal)
+        {
+            this->normal[0] = normal.x;
+            this->normal[1] = normal.y;
+            this->normal[2] = normal.z;
         }
 
         // assignment for color, not really generic
@@ -122,6 +133,7 @@ class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 
   private:
 	float                                 animation_timer = 0.0f;
+    float                                 diff = 0.01f;
 	vk::DescriptorSet                     descriptor_set;
 	vk::DescriptorSetLayout               descriptor_set_layout;
 	size_t                                dynamic_alignment = 0;
