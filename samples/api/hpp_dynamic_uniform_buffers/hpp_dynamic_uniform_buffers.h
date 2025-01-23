@@ -30,7 +30,7 @@
 
 #include <hpp_api_vulkan_sample.h>
 
-#define OBJECT_INSTANCES 15
+#define OBJECT_INSTANCES 24
 
 class HPPDynamicUniformBuffers : public HPPApiVulkanSample
 {
